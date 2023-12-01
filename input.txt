@@ -1,0 +1,4 @@
+ab@    a
+ch@    ch
+ab@b|  a
+a*     ε
