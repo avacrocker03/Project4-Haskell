@@ -10,17 +10,19 @@ readInput input = unlines (map readInputLines (lines input))
 
 -- reading in the input line by line
 readInputLines :: String -> String
-readInputLines line = unlines (map (\word -> "= " ++ word)  (splitLine line))
+readInputLines line = 
+    let wordsList = splitLine line
+        tree = convertToTree (head wordsList)
+    in unlines ((show tree : map (\word -> "= " ++ word) wordsList))
 
 -- splitting input at spaces and returning list
 splitLine :: String -> [String]
 splitLine sLine = words sLine
-let tree = convertToTree sLine !! 0
 
 -- creating data type for regular expression tree
 data RegexTree = Empty | Epsilon | Leaf Char | Alternation RegexTree RegexTree 
             | Plus RegexTree | KleeneStar RegexTree | Optional RegexTree 
-            | Concatentation RegexTree RegexTree
+            | Concatenation RegexTree RegexTree
             deriving (Show)
 
 isOperator :: Char -> Bool
@@ -38,13 +40,14 @@ convertToTree expr = buildTree [] expr
             let newStack = case x of
                         '|' -> let (r2:r1:rest) = stack
                             in (Alternation r1 r2):rest
-                        '+' -> let (r2:r1:rest) = stack
-                            in (Plus r1 r2):rest
+                        '+' -> let (r:rest) = stack
+                            in (Plus r):rest
                         '*' -> let (r:rest) = stack
-                            in (Star r):rest
+                            in (KleeneStar r):rest
                         '?' -> let (r:rest) = stack
                             in (Optional r):rest
                         '@' -> let (r2:r1:rest) = stack
                             in (Concatenation r1 r2):rest
           in buildTree newStack xs
-        | otherwise = buildTree ((Leaf c):stack) xs
+        | otherwise = buildTree ((Leaf x):stack) xs
+
