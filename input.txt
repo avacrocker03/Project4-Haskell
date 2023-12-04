@@ -1,4 +1,7 @@
-ab@    a
-ch@    ch
-ab@b|  a
-a*     ε
+a?     a
+a?     ε
+a?     ab
+aab|@*  ababababa
+aab|@*  babababab
+b|*ab@c@ε|@      c
+∅b|*ab@c@ε|@      ε
