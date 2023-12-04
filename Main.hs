@@ -2,7 +2,7 @@
 -- run: Main < input.txt
 
 main :: IO ()
-main = interact (readInput)
+main = interact readInput
 
 -- reading input
 readInput :: String -> String
@@ -10,18 +10,18 @@ readInput input = unlines (map readInputLines (lines input))
 
 -- reading in the input line by line
 readInputLines :: String -> String
-readInputLines line = 
+readInputLines line =
     let wordsList = splitLine line
         tree = convertToTree (head wordsList)
-    in unlines ((show tree : map (\word -> "= " ++ word) wordsList))
+    in unlines (show tree : map ("= " ++) wordsList)
 
 -- splitting input at spaces and returning list
 splitLine :: String -> [String]
 splitLine sLine = words sLine
 
 -- creating data type for regular expression tree
-data RegexTree = Empty | Epsilon | Leaf Char | Alternation RegexTree RegexTree 
-            | Plus RegexTree | KleeneStar RegexTree | Optional RegexTree 
+data RegexTree = Empty | Epsilon | Leaf Char | Alternation RegexTree RegexTree
+            | Plus RegexTree | KleeneStar RegexTree | Optional RegexTree
             | Concatenation RegexTree RegexTree
             deriving (Show)
 
@@ -31,7 +31,7 @@ isOperator op = op `elem` ['|', '+', '*', '?', '@']
 -- fillTree :: String -> RegexTree
 
 convertToTree :: String -> RegexTree
-convertToTree expr = buildTree [] expr
+convertToTree = buildTree []
   where
     buildTree :: [RegexTree] -> String -> RegexTree
     buildTree stack [] = head stack
@@ -39,15 +39,14 @@ convertToTree expr = buildTree [] expr
         | isOperator x =
             let newStack = case x of
                         '|' -> let (r2:r1:rest) = stack
-                            in (Alternation r1 r2):rest
+                            in Alternation r1 r2:rest
                         '+' -> let (r:rest) = stack
-                            in (Plus r):rest
+                            in Plus r:rest
                         '*' -> let (r:rest) = stack
-                            in (KleeneStar r):rest
+                            in KleeneStar r:rest
                         '?' -> let (r:rest) = stack
-                            in (Optional r):rest
+                            in Optional r:rest
                         '@' -> let (r2:r1:rest) = stack
-                            in (Concatenation r1 r2):rest
+                            in Concatenation r1 r2:rest
           in buildTree newStack xs
-        | otherwise = buildTree ((Leaf x):stack) xs
-
+        | otherwise = buildTree (Leaf x:stack) xs
