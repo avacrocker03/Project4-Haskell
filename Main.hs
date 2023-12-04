@@ -1,5 +1,3 @@
--- q's for stanny: 
--- ascii value clarification 
 -- compile: ghc -Wall --make Main.hs
 -- run: Main < input.txt
 
@@ -23,5 +21,8 @@ data RegexTree = Empty | Epsilon | Character Char | Alternation RegexTree RegexT
             | OneOrMore RegexTree | KleeneStar RegexTree | Optional RegexTree 
             | Concatentation RegexTree RegexTree
             deriving (Show)
+
+isOperator :: Char -> Bool
+isOperator op = op `elem` ['|', '+', '*', '?', '@', '\x2205', '\x03B5']
 
 -- fillTree :: String -> RegexTree
