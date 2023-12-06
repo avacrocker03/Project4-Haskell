@@ -39,6 +39,7 @@ data Regex = Empty | Epsilon | Leaf Char | Alternation Regex Regex
 isOperator  :: Char -> Bool
 isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
+-- deriving each eqn for regex
 derive :: Regex -> Char -> Regex
 derive Empty _ = Empty
 derive Epsilon _ = Empty
@@ -46,17 +47,19 @@ derive (Leaf x') x
     | x == x' = Epsilon
     | otherwise = Empty
 derive (Alternation r1 r2) x =
-    --
+    -- eqn for alternation
 derive (Plus r) x = 
-    -- 
+    -- eqn for plus
 derive (KleeneStar r) x =
-    --
+    -- eqn for kleene
 derive (Optional r) x = 
-    --
+    -- eqn for optional
 derive (Concatentation r1 r2) x =
-    --
+    -- eqn for concat
+
 nullable :: Regex -> Bool
 -- if regex = epsilon
+
 -- used to compare input derivation to output
 match :: Regex -> String -> Bool
 match x str = nullable (foldl derive x str)
