@@ -37,17 +37,39 @@ readInputLines line =
     let wordsList = words line
         -- creating tree with first index of input list
         tree = regexToTree (head wordsList)
-    in unlines (show tree : map ("= " ++) wordsList)
+        matched = match tree (wordsList!!1)
+        strOut  = boolToString matched
+    in unlines [strOut, show tree, show (wordsList!!1), show (head wordsList)]
+    
+-- converts bool values to string
+boolToString :: Bool -> String
+boolToString True  = "yes"
+boolToString False = "no"
+
+-- checking if the character is an operator
+isOperator  :: Char -> Bool
+isOperator op = op `elem` ['|', '+', '*', '?', '@']
+
+-- used to compare input derivation to output
+match :: Regex -> String -> Bool
+match x str = nullable (foldl derive x str)
+
+-- checking if regex is epsilon: checking nullability
+nullable :: Regex -> Bool
+nullable Empty = False
+nullable Epsilon = True
+nullable (Leaf _) = False
+nullable (Alternation r1 r2) = nullable r1 || nullable r2
+nullable (Plus r) =  nullable r
+nullable (KleeneStar _) = True
+nullable (Optional _) = True
+nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- defining the data type for regular expressions
 data Regex = Empty | Epsilon | Leaf Char | Alternation Regex Regex
             | Plus Regex | KleeneStar Regex | Optional Regex
             | Concatenation Regex Regex
             deriving (Show)
-
--- checking if the character is an operator
-isOperator  :: Char -> Bool
-isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
 -- deriving each eqn for regex
 derive :: Regex -> Char -> Regex
@@ -71,23 +93,7 @@ derive (Optional r) x =
 derive (Concatenation r1 r2) x =
     -- eqn for concat
     if not (nullable r1) then derive r1 x `Concatenation` r2 
-    else derive r1 x `Alternation` (derive r2 x) `Concatenation` r2
-    
-    
--- checking if regex is epsilon: checking nullability
-nullable :: Regex -> Bool
-nullable Empty = False
-nullable Epsilon = True
-nullable (Leaf _) = False
-nullable (Alternation r1 r2) = nullable r1 || nullable r2
-nullable (Plus r) =  nullable r
-nullable (KleeneStar _) = True
-nullable (Optional _) = True
-nullable (Concatenation r1 r2) = nullable r1 && nullable r2
-
--- used to compare input derivation to output
-match :: Regex -> String -> Bool
-match x str = nullable (foldl derive x str)
+    else derive r1 x `Alternation` derive r2 x `Concatenation` r2
 
 -- creating tree data structure
 regexToTree :: String -> Regex
