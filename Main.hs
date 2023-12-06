@@ -6,6 +6,12 @@
  - Language implementation: Glorious Glasgow Haskell Compilation System, version 8.4.3
  -}
 
+ {-
+ - Citations
+ - https://betterprogramming.pub/how-to-take-the-derivative-of-a-regular-expression-explained-2e7cea15028d
+ - https://wiki.haskell.org/Haskell
+ -}
+
 -- compile: ghc -Wall --make Main.hs
 -- run: Main < input.txt
 
@@ -13,6 +19,7 @@
 -- Nail down encoding problems
     -- UTF-8
     -- 
+module Main where
 
 import Data.List (foldl)
 
@@ -26,16 +33,19 @@ readInput input = unlines (map readInputLines (lines input))
 -- reading in the input line by line
 readInputLines :: String -> String
 readInputLines line =
+    -- splitting the line by space & putting in list
     let wordsList = words line
+        -- creating tree with first index of input list
         tree = regexToTree (head wordsList)
     in unlines (show tree : map ("= " ++) wordsList)
 
--- creating data type for regular expression tree
+-- defining the data type for regular expressions
 data Regex = Empty | Epsilon | Leaf Char | Alternation Regex Regex
             | Plus Regex | KleeneStar Regex | Optional Regex
             | Concatenation Regex Regex
             deriving (Show)
 
+-- checking if the character is an operator
 isOperator  :: Char -> Bool
 isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
@@ -51,17 +61,19 @@ derive (Alternation r1 r2) x =
     derive r1 x `Alternation` derive r2 x
 derive (Plus r) x = 
     -- eqn for plus
-    derive r x `Concatenation` r `KleeneStar` derive r x
+    derive r x `Concatenation` (derive r x `KleeneStar`)
 derive (KleeneStar r) x =
     -- eqn for kleene
-    derive r x `Concatenation` (r `KleeneStar` r x)
+    derive r x `Concatenation` (derive r x `KleeneStar`)
 derive (Optional r) x = 
     -- eqn for optional
     derive r x `Alternation` Epsilon
 derive (Concatenation r1 r2) x =
     -- eqn for concat
-    derive r1 x `Concatenation` r2 `Alternation` (nullable r1 `Concatenation` derive r2 x)
-
+    if not (nullable r1) then derive r1 x `Concatenation` r2 
+    else derive r1 x `Alternation` (derive r2 x) `Concatenation` r2
+    
+    
 -- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool
 nullable Empty = False
@@ -77,12 +89,14 @@ nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 match :: Regex -> String -> Bool
 match x str = nullable (foldl derive x str)
 
+-- creating tree data structure
 regexToTree :: String -> Regex
 regexToTree = popTree []
   where
     popTree :: [Regex] -> String -> Regex
     popTree stack [] = head stack
     popTree stack (x:xs)
+        -- checking if operator
         | isOperator x =
             let newStack = case x of
                         '|' -> let (r2:r1:rest) = stack
