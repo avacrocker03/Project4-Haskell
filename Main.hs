@@ -48,17 +48,30 @@ derive (Leaf x') x
     | otherwise = Empty
 derive (Alternation r1 r2) x =
     -- eqn for alternation
+    derive r1 x `Alternation` derive r2 x
 derive (Plus r) x = 
     -- eqn for plus
+    derive r x `Concatenation` r `KleeneStar` derive r x
 derive (KleeneStar r) x =
     -- eqn for kleene
+    derive r x `Concatenation` (r `KleeneStar` r x)
 derive (Optional r) x = 
     -- eqn for optional
-derive (Concatentation r1 r2) x =
+    derive r x `Alternation` Epsilon
+derive (Concatenation r1 r2) x =
     -- eqn for concat
+    derive r1 x `Concatenation` r2 `Alternation` (nullable r1 `Concatenation` derive r2 x)
 
+-- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool
--- if regex = epsilon
+nullable Empty = False
+nullable Epsilon = True
+nullable (Leaf _) = False
+nullable (Alternation r1 r2) = nullable r1 || nullable r2
+nullable (Plus r) =  nullable r
+nullable (KleeneStar _) = True
+nullable (Optional _) = True
+nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- used to compare input derivation to output
 match :: Regex -> String -> Bool
