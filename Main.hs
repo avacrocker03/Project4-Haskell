@@ -1,6 +1,10 @@
 -- compile: ghc -Wall --make Main.hs
 -- run: Main < input.txt
 
+--work on what was in the blog 
+-- Nail down encoding problems
+    -- UTF-8
+    -- 
 main :: IO ()
 main = interact readInput
 
@@ -11,14 +15,9 @@ readInput input = unlines (map readInputLines (lines input))
 -- reading in the input line by line
 readInputLines :: String -> String
 readInputLines line =
-    let wordsList = splitLine line
+    let wordsList = words line
         tree = regexToTree (head wordsList)
     in unlines (show tree : map ("= " ++) wordsList)
-
--- splitting input at spaces and returning list
-splitLine :: String -> [String]
-splitLine sLine = words sLine
-
 
 -- creating data type for regular expression tree
 data RegexTree = Empty | Epsilon | Leaf Char | Alternation RegexTree RegexTree
@@ -26,7 +25,7 @@ data RegexTree = Empty | Epsilon | Leaf Char | Alternation RegexTree RegexTree
             | Concatenation RegexTree RegexTree
             deriving (Show)
 
-isOperator :: Char -> Bool
+isOperator  :: Char -> Bool
 isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
 regexToTree :: String -> RegexTree
