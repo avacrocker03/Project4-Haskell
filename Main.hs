@@ -22,6 +22,7 @@
 module Main where
 
 import Data.List (foldl)
+import Debug.Trace
 
 main :: IO ()
 main = interact readInput
@@ -51,8 +52,15 @@ isOperator  :: Char -> Bool
 isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
 -- used to compare input derivation to output
+-- match :: Regex -> String -> Bool
+-- match x str = nullable (foldl derive x str)
+
 match :: Regex -> String -> Bool
-match x str = nullable (foldl derive x str)
+match x str = trace ("Input: " ++ show x ++ ", " ++ show str) $
+              trace ("Output: " ++ show result) result
+  where
+    result = nullable (foldl derive x str)
+
 
 -- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool

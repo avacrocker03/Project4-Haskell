@@ -3,6 +3,6 @@ ab@    ab
 a?     bbbbb
 a*     aaaaaa
 a*     ε
-a+     aaaaa
+a+     a
 a      a
 a*     ε
