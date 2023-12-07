@@ -15,14 +15,9 @@
 -- compile: ghc -Wall --make Main.hs
 -- run: Main < input.txt
 
---work on what was in the blog 
--- Nail down encoding problems
-    -- UTF-8
-    -- 
 module Main where
 
 import Data.List (foldl)
-import Debug.Trace
 
 main :: IO ()
 main = interact readInput
@@ -52,19 +47,12 @@ isOperator  :: Char -> Bool
 isOperator op = op `elem` ['|', '+', '*', '?', '@']
 
 -- used to compare input derivation to output
--- match :: Regex -> String -> Bool
--- match x str = nullable (foldl derive x str)
-
 match :: Regex -> String -> Bool
-match x str = trace ("Input: " ++ show x ++ ", " ++ show str) $
-              trace ("Output: " ++ show result) result
-  where
-    result = nullable (foldl derive x str)
-
+match x str = nullable (foldl derive x str)
 
 -- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool
-nullable Empty = False
+nullable EmptySet = False
 nullable Epsilon = True
 nullable (Leaf _) = False
 nullable (Alternation r1 r2) = nullable r1 || nullable r2
@@ -74,34 +62,28 @@ nullable (Optional _) = True
 nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- defining the data type for regular expressions
-data Regex = Empty | Epsilon | Leaf Char | Alternation Regex Regex
-            | Plus Regex | KleeneStar Regex | Optional Regex
+data Regex = EmptySet 
+            | Epsilon 
+            | Leaf Char 
+            | Alternation Regex Regex
+            | Plus Regex 
+            | KleeneStar Regex 
+            | Optional Regex
             | Concatenation Regex Regex
             deriving (Show)
 
 -- deriving each eqn for regex
 derive :: Regex -> Char -> Regex
-derive Empty _ = Empty
-derive Epsilon _ = Empty
-derive (Leaf x') x
-    | x == x' = Epsilon
-    | otherwise = Empty
-derive (Alternation r1 r2) x =
-    -- eqn for alternation
-    derive r1 x `Alternation` derive r2 x
-derive (Plus r) x = 
-    -- eqn for plus
-    derive r x `Concatenation` (derive r x `KleeneStar`)
-derive (KleeneStar r) x =
-    -- eqn for kleene
-    derive r x `Concatenation` (derive r x `KleeneStar`)
-derive (Optional r) x = 
-    -- eqn for optional
-    derive r x `Alternation` Epsilon
+derive EmptySet x = EmptySet
+derive Epsilon x = EmptySet
+derive (Leaf c) x = if c == x then Epsilon else EmptySet
+derive (Alternation r1 r2) x = Alternation (derive r1 x)  (derive r2 x)
+derive (Plus r) x       = Concatenation (derive r x) (KleeneStar r)
+derive (KleeneStar r) x = Concatenation (derive r x) (KleeneStar r)
+derive (Optional r) x   = derive r x
 derive (Concatenation r1 r2) x =
-    -- eqn for concat
-    if not (nullable r1) then derive r1 x `Concatenation` r2 
-    else derive r1 x `Alternation` derive r2 x `Concatenation` r2
+    if not (nullable r1) then Concatenation (derive r1 x) r2 
+    else Alternation (Concatenation (derive r1 x) r2) (derive r2 x)
 
 -- creating tree data structure
 regexToTree :: String -> Regex
