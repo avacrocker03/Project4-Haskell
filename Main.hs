@@ -35,7 +35,7 @@ readInputLines line =
         tree = regexToTree (head wordsList)
         matched = match tree (wordsList!!1)
         strOut  = boolToString matched
-    in unlines [strOut, show tree, show (wordsList!!1), show (head wordsList)]
+    in unlines [strOut, show (wordsList!!1), show (head wordsList)]
     
 -- converts bool values to string
 boolToString :: Bool -> String

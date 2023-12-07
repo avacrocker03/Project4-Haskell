@@ -1,8 +1,10 @@
-ab|c@  bc
-ab@    ab
-a?     bbbbb
-a*     aaaaaa
+ab@    a
+ch@    ch
+ab@b|  a
 a*     ε
-a+     a
-a      a
-a*     ε
+a?     a
+a?     ε
+a?     ab
+aab|@*  ababababa
+aab|@*  ababababab
+aab|@*  babababab
