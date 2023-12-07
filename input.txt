@@ -8,3 +8,5 @@ a?     ab
 aab|@*  ababababa
 aab|@*  ababababab
 aab|@*  babababab
+∅b|*ab@c@ε|@      c
+∅b|*ab@c@ε|@      ε

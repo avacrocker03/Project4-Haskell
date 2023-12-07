@@ -16,9 +16,7 @@
 -- run: Main < input.txt
 
 module Main where
-
-import Data.List (foldl)
-
+    
 main :: IO ()
 main = interact readInput
 
@@ -32,37 +30,34 @@ readInputLines line =
     -- splitting the line by space & putting in list
     let wordsList = words line
         -- creating tree with first index of input list
-        tree = regexToTree (head wordsList)
-        matched = match tree (wordsList!!1)
+        tree = regexToTree [] (head wordsList) 
+        matched = match (formatRegex tree) (head wordsList) (wordsList!!1)
         strOut  = boolToString matched
-    in unlines [strOut, show (wordsList!!1), show (head wordsList)]
+    in unlines [strOut]
     
--- converts bool values to string
+-- converts bool values to string so they can be printed
 boolToString :: Bool -> String
 boolToString True  = "yes"
 boolToString False = "no"
 
--- checking if the character is an operator
-isOperator  :: Char -> Bool
-isOperator op = op `elem` ['|', '+', '*', '?', '@']
-
 -- used to compare input derivation to output
-match :: Regex -> String -> Bool
-match x str = nullable (foldl derive x str)
+match :: Regex -> String -> String -> Bool
+match tree regExp "ε" = nullable tree
+match tree regExp str = nullable (foldl derive tree str)
 
 -- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool
 nullable EmptySet = False
 nullable Epsilon = True
-nullable (Leaf _) = False
+nullable (Leaf c) = False
 nullable (Alternation r1 r2) = nullable r1 || nullable r2
 nullable (Plus r) =  nullable r
-nullable (KleeneStar _) = True
-nullable (Optional _) = True
+nullable (KleeneStar c) = True
+nullable (Optional c) = True
 nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- defining the data type for regular expressions
-data Regex = EmptySet 
+data Regex  = EmptySet 
             | Epsilon 
             | Leaf Char 
             | Alternation Regex Regex
@@ -85,25 +80,29 @@ derive (Concatenation r1 r2) x =
     if not (nullable r1) then Concatenation (derive r1 x) r2 
     else Alternation (Concatenation (derive r1 x) r2) (derive r2 x)
 
--- creating tree data structure
-regexToTree :: String -> Regex
-regexToTree = popTree []
-  where
-    popTree :: [Regex] -> String -> Regex
-    popTree stack [] = head stack
-    popTree stack (x:xs)
-        -- checking if operator
-        | isOperator x =
-            let newStack = case x of
-                        '|' -> let (r2:r1:rest) = stack
-                            in Alternation r1 r2:rest
-                        '+' -> let (r:rest) = stack
-                            in Plus r:rest
-                        '*' -> let (r:rest) = stack
-                            in KleeneStar r:rest
-                        '?' -> let (r:rest) = stack
-                            in Optional r:rest
-                        '@' -> let (r2:r1:rest) = stack
-                            in Concatenation r1 r2:rest
-          in popTree newStack xs
-        | otherwise = popTree (Leaf x:stack) xs
+--Fixing the [regex] to regex problem
+formatRegex :: [Regex] -> Regex
+formatRegex (r:_) = r
+
+-- Makes the tree from a given regex list and a string
+regexToTree :: [Regex] -> String -> [Regex]
+regexToTree stack (x:rest) = if isOperator x then regexToTree (operatorToRegex stack x) rest else regexToTree (charToRegex x:stack) rest
+regexToTree stack _ = stack 
+
+-- checking if the character is an operator
+isOperator  :: Char -> Bool
+isOperator op = op `elem` ['|', '+', '*', '?', '@']
+
+--Gives back the regex for non operator characters
+charToRegex :: Char -> Regex
+charToRegex 'ε' = Epsilon 
+charToRegex '∅' = EmptySet
+charToRegex  c  = Leaf c
+
+--Converts the char to a regex function
+operatorToRegex :: [Regex] -> Char -> [Regex]
+operatorToRegex (r2:r1:rest) '|' = (Alternation r1 r2):rest
+operatorToRegex (r2:r1:rest) '@' = (Concatenation r1 r2):rest
+operatorToRegex (r:rest)     '+' = (Plus r):rest
+operatorToRegex (r:rest)     '*' = (KleeneStar r):rest
+operatorToRegex (r:rest)     '?' = (Optional r):rest
