@@ -31,29 +31,29 @@ readInputLines line =
     let wordsList = words line
         -- creating tree with first index of input list
         tree = regexToTree [] (head wordsList) 
-        matched = match (formatRegex tree) (head wordsList) (wordsList!!1)
-        strOut  = boolToString matched
-    in unlines [strOut]
+        matched = match (formatRegex tree) (head wordsList) (wordsList!!1) -- storing result from comparing inputs
+        strOut  = boolToString matched -- converting bool result to string
+    in init (unlines [strOut]) -- printing output
     
 -- converts bool values to string so they can be printed
 boolToString :: Bool -> String
-boolToString True  = "yes"
-boolToString False = "no"
+boolToString True  = "yes" -- formatting for output
+boolToString False = "no" -- formatting for output
 
 -- used to compare input derivation to output
 match :: Regex -> String -> String -> Bool
-match tree regExp "ε" = nullable tree
-match tree regExp str = nullable (foldl derive tree str)
+match tree _ "ε" = nullable tree -- when epsilon present in eqn
+match tree _ str = nullable (foldl derive tree str)
 
 -- checking if regex is epsilon: checking nullability
 nullable :: Regex -> Bool
 nullable EmptySet = False
 nullable Epsilon = True
-nullable (Leaf c) = False
+nullable (Leaf _) = False
 nullable (Alternation r1 r2) = nullable r1 || nullable r2
 nullable (Plus r) =  nullable r
-nullable (KleeneStar c) = True
-nullable (Optional c) = True
+nullable (KleeneStar _) = True
+nullable (Optional _) = True
 nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- defining the data type for regular expressions
@@ -69,9 +69,9 @@ data Regex  = EmptySet
 
 -- deriving each eqn for regex
 derive :: Regex -> Char -> Regex
-derive EmptySet x = EmptySet
-derive Epsilon x = EmptySet
-derive (Leaf c) x = if c == x then Epsilon else EmptySet
+derive EmptySet _ = EmptySet
+derive Epsilon _ = EmptySet
+derive (Leaf c) x = if c == x then Epsilon else EmptySet 
 derive (Alternation r1 r2) x = Alternation (derive r1 x)  (derive r2 x)
 derive (Plus r) x       = Concatenation (derive r x) (KleeneStar r)
 derive (KleeneStar r) x = Concatenation (derive r x) (KleeneStar r)
@@ -83,6 +83,9 @@ derive (Concatenation r1 r2) x =
 --Fixing the [regex] to regex problem
 formatRegex :: [Regex] -> Regex
 formatRegex (r:_) = r
+formatRegex []  = EmptySet -- handling empty cases
+
+
 
 -- Makes the tree from a given regex list and a string
 regexToTree :: [Regex] -> String -> [Regex]
@@ -106,3 +109,5 @@ operatorToRegex (r2:r1:rest) '@' = (Concatenation r1 r2):rest
 operatorToRegex (r:rest)     '+' = (Plus r):rest
 operatorToRegex (r:rest)     '*' = (KleeneStar r):rest
 operatorToRegex (r:rest)     '?' = (Optional r):rest
+operatorToRegex [] _ = [] -- handling empty cases
+operatorToRegex _   _   = [] -- handling empty cases
