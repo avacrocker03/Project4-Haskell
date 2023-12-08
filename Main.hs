@@ -57,15 +57,9 @@ nullable (Optional _) = True
 nullable (Concatenation r1 r2) = nullable r1 && nullable r2
 
 -- defining the data type for regular expressions
-data Regex  = EmptySet 
-            | Epsilon 
-            | Leaf Char 
-            | Alternation Regex Regex
-            | Plus Regex 
-            | KleeneStar Regex 
-            | Optional Regex
-            | Concatenation Regex Regex
-            deriving (Show)
+data Regex  = EmptySet | Epsilon | Leaf Char | Alternation Regex Regex | Plus Regex
+              | KleeneStar Regex | Optional Regex | Concatenation Regex Regex
+              deriving (Show)
 
 -- deriving each eqn for regex
 derive :: Regex -> Char -> Regex
